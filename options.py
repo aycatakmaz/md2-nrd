@@ -82,7 +82,8 @@ class MonodepthOptions:
                                  type=int,
                                  help="frames to load",
                                  default=[0, -1, 1])
-
+        self.parser.add_argument("--video_save_frequency", type=int, help="video saving frequency", default=5)
+        
         # OPTIMIZATION options
         self.parser.add_argument("--batch_size",
                                  type=int,
@@ -185,6 +186,7 @@ class MonodepthOptions:
                                  action="store_true")
 
         # ABLATION options
+        self.parser.add_argument("--save_depth_video", help="if set, saves depth prediction videos", action="store_true")
         self.parser.add_argument("--load_depth", help="uses the flow obtained from the raft network", action="store_true")
         self.parser.add_argument("--use_raft_flow", help="uses the flow obtained from the raft network", action="store_true")
         self.parser.add_argument("--loss_percentage", help="w*e/d", action="store_true")

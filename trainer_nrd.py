@@ -6,9 +6,11 @@
 
 from __future__ import absolute_import, division, print_function
 
+import torch
 import numpy as np
 import time
-
+import os
+import os.path
 import torch
 import torch.nn.functional as F
 import torch.optim as optim
@@ -26,6 +28,10 @@ import networks
 from IPython import embed
 import pdb
 import matplotlib.pyplot as plt
+
+import matplotlib.pyplot as plt
+from matplotlib.lines import Line2D
+from matplotlib import animation
 
 from multiprocessing import set_start_method
 try:
@@ -106,6 +112,11 @@ class Trainer:
         self.val_loader = DataLoader(
             val_dataset, self.opt.batch_size, True,
             num_workers=self.opt.num_workers, pin_memory=True, drop_last=True)
+
+        self.val_loader_video = DataLoader(
+            val_dataset, 1, False,
+            num_workers=0, pin_memory=True, drop_last=True)
+
         self.val_iter = iter(self.val_loader)
 
         self.writers = {}
@@ -156,11 +167,16 @@ class Trainer:
         self.step = 0
         self.start_time = time.time()
         for self.epoch in range(self.opt.num_epochs):
-            self.run_epoch()
             if (self.epoch + 1) % self.opt.save_frequency == 0:
                 self.save_model()
+            if (self.epoch+1)%self.opt.video_save_frequency==0: #(self.epoch+1)%5==0: #self.epoch==0: #
+                print('printing epoch: ', self.epoch)
+                self.run_epoch(log_vid=True)
+            else:
+                self.run_epoch(log_vid=False)
 
-    def run_epoch(self):
+
+    def run_epoch(self,log_vid=False):
         """Run a single epoch of training and validation
         """
         self.model_lr_scheduler.step()
@@ -192,6 +208,12 @@ class Trainer:
 
                 self.log("train", inputs, outputs, losses)
                 self.val()
+
+            if self.opt.save_video:
+                if log_vid==True and batch_idx%1000==0:
+                    print('saving depth video')
+                    self.save_depth_video()
+                    print('saved depth video')
 
             self.step += 1
 
@@ -379,6 +401,83 @@ class Trainer:
 
         for i, metric in enumerate(self.depth_metric_names):
             losses[metric] = np.array(depth_errors[i].cpu())
+
+
+    def plot_images(self, img_list, emb_list):
+        def init():
+            img.set_data((np.concatenate((np.clip(1-img_list[0],a_min=0, a_max=1), emb_list[0]),axis=0)*255).astype(np.uint32))
+            return (img,)
+
+        def animate(i):
+            img.set_data((np.concatenate((np.clip(1-img_list[i],a_min=0, a_max=1), emb_list[i]),axis=0)*255).astype(np.uint32))
+            return (img,)
+
+        fig = plt.figure(frameon=False)
+        ax = plt.Axes(fig, [0., 0., 1., 1.])
+        ax.set_axis_off()
+        fig.add_axes(ax)
+        img = ax.imshow((np.concatenate((np.clip(1-img_list[0],a_min=0, a_max=1), emb_list[0]),axis=0)*255).astype(np.uint32));
+        anim = animation.FuncAnimation(fig, animate, init_func=init,
+                                     frames=len(img_list), interval=60, blit=True)
+        return anim
+
+    def normalize(self, x):
+        return (x-x.min())/(x.max()-x.min())
+
+    def plot_only_depth(self, img_list):
+        def init():
+            img.set_data(img_list[0])
+            return (img,)
+
+        def animate(i):
+            img.set_data(img_list[i])
+            return (img,)
+
+        fig = plt.figure(frameon=False)
+        fig.set_size_inches(w,h)
+        ax = plt.Axes(fig, [0., 0., 1., 1.])
+        ax.set_axis_off()
+        fig.add_axes(ax)
+        img = ax.imshow(img_list[0]);
+        anim = animation.FuncAnimation(fig, animate, init_func=init,
+                                     frames=len(img_list), interval=60, blit=True)
+        return anim
+        
+    def save_depth_video(self):
+        self.set_eval()
+        root_anim_dir = self.log_path + '/' #model_name_temp + '/' #self.opt.anim_dir + '/' + self.model_name_temp[-24:] + '/'
+        input_images = np.zeros((min(50,len(self.val_loader_video)),self.opt.height,self.opt.width,3))
+        seq_depths_plasma = np.zeros((min(50,len(self.val_loader_video)),self.opt.height,self.opt.width,3)) #np.zeros((len(self.train_loader_vid),384,1024,3))
+        
+        cm = plt.get_cmap('plasma')
+
+        for batch_idx, inputs in enumerate(self.val_loader_video):
+            with torch.no_grad():
+                if batch_idx<min(2,len(self.val_loader_video)):
+                    
+                    for key, ipt in inputs.items():
+                        inputs[key] = ipt.to(self.device)
+
+                    tgt_features = self.models["encoder"](inputs["color", 0, 0])
+                    _,depth_tgt_list = disp_to_depth(self.models["depth"](tgt_features)['disp', 0], self.opt.min_depth, self.opt.max_depth)
+
+                    pdb.set_trace()
+                    #seq_depths[batch_idx,:,:,0] = seq_depths[batch_idx,:,:,1] = seq_depths[batch_idx,:,:,2] = np.squeeze(normalize_depth(outputs[("depth", 0, 0)][0]).data.cpu().numpy())
+                    
+                    #seq_depths_plasma[batch_idx,:,:,:] = cm(1-(np.tanh(3*np.squeeze(depth_tgt_list.data.cpu().numpy()))))[:,:,0:3]
+                    seq_depths_plasma[batch_idx,:,:,:] = cm(1-(np.squeeze(normalize_depth(depth_tgt_list).data.cpu().numpy())))[:,:,0:3]
+                    
+                    input_images[batch_idx,:,:,:] = (1-np.squeeze(inputs['color',0,0].permute(0,2,3,1).data.cpu().numpy()))
+                else:
+                    break
+        
+        img_list = list(self.normalize(seq_depths_plasma))
+        input_images_nm = list(self.normalize(input_images))
+        Writer = animation.writers['ffmpeg']
+        writer = Writer(fps=15,  bitrate=1800)
+        self.plot_images(input_images_nm,img_list).save(root_anim_dir+'/anim_embeddings_'+  str(self.epoch).zfill(3)+'.mp4', writer=writer)
+        self.set_train() 
+
 
     def log_time(self, batch_idx, duration, loss):
         """Print a logging statement to the terminal

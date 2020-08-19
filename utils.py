@@ -9,7 +9,7 @@ import os
 import hashlib
 import zipfile
 from six.moves import urllib
-
+import torch
 
 def readlines(filename):
     """Read all the lines in a text file and return as a list
@@ -17,6 +17,24 @@ def readlines(filename):
     with open(filename, 'r') as f:
         lines = f.read().splitlines()
     return lines
+
+def normalize_rgb(x):
+    """Rescale image pixels to span range [0, 1]
+    """
+    return x/255.0
+
+def normalize_depth_just_clamp(x, cap_min=0, cap_max=3500):
+    x = torch.clamp(x, cap_min, cap_max)
+    return x
+
+def normalize_depth(x, cap_min=0, cap_max=3500):
+    """Rescale image pixels to span range [0, 1]
+    """
+    x = torch.clamp(x, cap_min, cap_max)
+    ma = float(x.max().cpu().data)
+    mi = float(x.min().cpu().data)
+    d = ma - mi if ma != mi else 1e5
+    return (x - mi) / d
 
 
 def normalize_image(x):
