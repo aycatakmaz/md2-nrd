@@ -27,6 +27,12 @@ from IPython import embed
 import pdb
 import matplotlib.pyplot as plt
 
+from multiprocessing import set_start_method
+try:
+    set_start_method('spawn')
+except RuntimeError:
+    pass
+    
 class Trainer:
     def __init__(self, options):
         #pdb.set_trace()
@@ -233,8 +239,8 @@ class Trainer:
         for key, ipt in inputs.items():
             inputs[key] = ipt.to(self.device)
 
-        pdb.set_trace()
-        plt.imsave('aycabak.png',  np.repeat(np.expand_dims(inputs['valid_mask'][0].cpu().numpy().astype(np.uint8)*255, axis=2), 3, axis=2))
+        #pdb.set_trace()
+        #plt.imsave('valmask.png',  np.repeat(np.expand_dims(inputs['valid_mask'][0].cpu().numpy().astype(np.uint8)*255, axis=2), 3, axis=2))
         if self.opt.pose_model_type == "shared":
             # If we are using a shared encoder for both depth and pose (as advocated
             # in monodepthv1), then all images are fed separately through the depth encoder.

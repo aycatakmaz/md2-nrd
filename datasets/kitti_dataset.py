@@ -174,16 +174,16 @@ class KITTIRAWDataset(KITTIDataset):
     def get_flow(self, folder, frame_index, side):
         fl_path = self.get_flow_path(folder, frame_index, side)
         #[frame_utils.read_gen(self.flow_list[index][img_ind]) for img_ind in list(range(self.num_frames-1))]
-        
+
         #print('getting flow path')
         #print(fl_path)
         loaded_flow = np.asarray(load_as_flow(fl_path))
         #print('loaded the flow')
         #print('flow size: ', loaded_flow.shape)
         corresp, valid_map = two_frames_checker(loaded_flow)
-        corresp = torch.from_numpy(corresp.astype(np.int32)).to(self.device)
-        valid_map = torch.from_numpy(valid_map).to(self.device)
-        loaded_flow = torch.from_numpy(loaded_flow.astype(np.float32)).to(self.device)
+        corresp = torch.from_numpy(corresp.astype(np.int32))#.to(self.device)
+        valid_map = torch.from_numpy(valid_map)#.to(self.device)
+        loaded_flow = torch.from_numpy(loaded_flow.astype(np.float32))#.to(self.device)
 
         p1, p2 = sample_pairs_with_flow(h=self.height, w=self.width, validity_mask=valid_map, num_sample_points=100000)
         return loaded_flow, corresp, valid_map, p1, p2

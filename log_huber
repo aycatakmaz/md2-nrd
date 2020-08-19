@@ -153,3 +153,256 @@ Traceback (most recent call last):
   File "/cluster/home/takmaza/md2-nrd/trainer.py", line 469, in compute_losses
     identity_reprojection_loss.shape).cuda() * 0.00001
 KeyboardInterrupt
+Sender: LSF System <lsfadmin@lo-s4-063>
+Subject: Job 7879649: <python train.py --model_name mono_model2> in cluster <leonhard> Exited
+
+Job <python train.py --model_name mono_model2> was submitted from host <lo-login-02> by user <takmaza> in cluster <leonhard> at Wed Aug 19 16:32:23 2020
+Job was executed on host(s) <6*lo-s4-063>, in queue <gpu.4h>, as user <takmaza> in cluster <leonhard> at Wed Aug 19 16:32:35 2020
+</cluster/home/takmaza> was used as the home directory.
+</cluster/home/takmaza/md2-nrd> was used as the working directory.
+Started at Wed Aug 19 16:32:35 2020
+Terminated at Wed Aug 19 18:34:50 2020
+Results reported at Wed Aug 19 18:34:50 2020
+
+Your job looked like:
+
+------------------------------------------------------------
+# LSBATCH: User input
+python train.py --model_name mono_model2
+------------------------------------------------------------
+
+TERM_OWNER: job killed by owner.
+Exited with exit code 1.
+
+Resource usage summary:
+
+    CPU time :                                   64391.56 sec.
+    Max Memory :                                 24576 MB
+    Average Memory :                             24322.83 MB
+    Total Requested Memory :                     24576.00 MB
+    Delta Memory :                               0.00 MB
+    Max Swap :                                   -
+    Max Processes :                              27
+    Max Threads :                                109
+    Run time :                                   7349 sec.
+    Turnaround time :                            7347 sec.
+
+The output (if any) follows:
+
+Training model named:
+   mono_model2
+Models and tensorboard events files are saved to:
+   /cluster/scratch/takmaza/CVL/kitti-animations
+Training is using:
+   cuda
+Using split:
+   eigen_zhou
+There are 39810 training items and 4424 validation items
+
+Training
+/cluster/home/takmaza/.virtualenvs/rain/lib/python3.6/site-packages/torch/optim/lr_scheduler.py:82: UserWarning: Detected call of `lr_scheduler.step()` before `optimizer.step()`. In PyTorch 1.1.0 and later, you should call them in the opposite order: `optimizer.step()` before `lr_scheduler.step()`.  Failure to do this will result in PyTorch skipping the first value of the learning rate schedule.See more details at https://pytorch.org/docs/stable/optim.html#how-to-adjust-learning-rate
+  "https://pytorch.org/docs/stable/optim.html#how-to-adjust-learning-rate", UserWarning)
+epoch   0 | batch      0 | examples/s:   5.1 | loss: 0.16082 | time elapsed: 00h00m19s | time left: 00h00m00s
+epoch   0 | batch    250 | examples/s:  18.7 | loss: 0.12618 | time elapsed: 00h03m10s | time left: 13h58m06s
+epoch   0 | batch    500 | examples/s:  19.4 | loss: 0.14921 | time elapsed: 00h06m00s | time left: 13h11m29s
+epoch   0 | batch    750 | examples/s:  16.8 | loss: 0.14113 | time elapsed: 00h08m51s | time left: 12h54m52s
+epoch   0 | batch   1000 | examples/s:  18.7 | loss: 0.13192 | time elapsed: 00h11m43s | time left: 12h45m41s
+epoch   0 | batch   1250 | examples/s:  17.9 | loss: 0.13251 | time elapsed: 00h14m33s | time left: 12h38m18s
+epoch   0 | batch   1500 | examples/s:  18.7 | loss: 0.12616 | time elapsed: 00h17m24s | time left: 12h32m29s
+epoch   0 | batch   1750 | examples/s:  18.0 | loss: 0.12494 | time elapsed: 00h20m15s | time left: 12h27m47s
+epoch   0 | batch   2000 | examples/s:  18.2 | loss: 0.11987 | time elapsed: 00h23m06s | time left: 12h23m15s
+Training
+epoch   1 | batch    683 | examples/s:  18.2 | loss: 0.09812 | time elapsed: 00h45m05s | time left: 11h42m44s
+epoch   1 | batch   2683 | examples/s:  19.4 | loss: 0.11056 | time elapsed: 01h06m55s | time left: 11h13m02s
+Training
+epoch   2 | batch   1366 | examples/s:  18.5 | loss: 0.09820 | time elapsed: 01h28m59s | time left: 10h48m56s
+Training
+Process Process-51:
+Traceback (most recent call last):
+  File "/cluster/apps/python/3.6.4/lib64/python3.6/multiprocessing/process.py", line 258, in _bootstrap
+    self.run()
+  File "/cluster/apps/python/3.6.4/lib64/python3.6/multiprocessing/process.py", line 93, in run
+    self._target(*self._args, **self._kwargs)
+  File "/cluster/home/takmaza/.virtualenvs/rain/lib/python3.6/site-packages/torch/utils/data/_utils/worker.py", line 196, in _worker_loop
+    pass
+KeyboardInterrupt
+Exception ignored in: <bound method _MultiProcessingDataLoaderIter.__del__ of <torch.utils.data.dataloader._MultiProcessingDataLoaderIter object at 0x2b2719e20080>>
+Traceback (most recent call last):
+  File "/cluster/home/takmaza/.virtualenvs/rain/lib/python3.6/site-packages/torch/utils/data/dataloader.py", line 926, in __del__
+    self._shutdown_workers()
+  File "/cluster/home/takmaza/.virtualenvs/rain/lib/python3.6/site-packages/torch/utils/data/dataloader.py", line 906, in _shutdown_workers
+    w.join()
+  File "/cluster/apps/python/3.6.4/lib64/python3.6/multiprocessing/process.py", line 124, in join
+    res = self._popen.wait(timeout)
+  File "/cluster/apps/python/3.6.4/lib64/python3.6/multiprocessing/popen_fork.py", line 57, in wait
+    return self.poll(os.WNOHANG if timeout == 0.0 else 0)
+  File "/cluster/apps/python/3.6.4/lib64/python3.6/multiprocessing/popen_fork.py", line 35, in poll
+    pid, sts = os.waitpid(self.pid, flag)
+  File "/cluster/home/takmaza/.virtualenvs/rain/lib/python3.6/site-packages/torch/utils/data/_utils/signal_handling.py", line 66, in handler
+    _error_if_any_worker_fails()
+RuntimeError: DataLoader worker (pid 10470) exited unexpectedly with exit code 1. Details are lost due to multiprocessing. Rerunning with num_workers=0 may give better error trace.
+epoch   3 | batch     49 | examples/s:  18.2 | loss: 0.09157 | time elapsed: 01h51m03s | time left: 10h25m39s
+Traceback (most recent call last):
+  File "train.py", line 18, in <module>
+    trainer.train()
+  File "/cluster/home/takmaza/md2-nrd/trainer.py", line 189, in train
+    self.run_epoch()
+  File "/cluster/home/takmaza/md2-nrd/trainer.py", line 205, in run_epoch
+    outputs, losses = self.process_batch(inputs)
+  File "/cluster/home/takmaza/md2-nrd/trainer.py", line 258, in process_batch
+    losses = self.compute_losses(inputs, outputs)
+  File "/cluster/home/takmaza/md2-nrd/trainer.py", line 469, in compute_losses
+    identity_reprojection_loss.shape).cuda() * 0.00001
+KeyboardInterrupt
+Sender: LSF System <lsfadmin@lo-s4-063>
+Subject: Job 7890996: <python train_nrd.py --model_name mono_model5> in cluster <leonhard> Exited
+
+Job <python train_nrd.py --model_name mono_model5> was submitted from host <lo-login-02> by user <takmaza> in cluster <leonhard> at Wed Aug 19 18:34:12 2020
+Job was executed on host(s) <6*lo-s4-063>, in queue <gpu.4h>, as user <takmaza> in cluster <leonhard> at Wed Aug 19 18:36:01 2020
+</cluster/home/takmaza> was used as the home directory.
+</cluster/home/takmaza/md2-nrd> was used as the working directory.
+Started at Wed Aug 19 18:36:01 2020
+Terminated at Wed Aug 19 18:36:18 2020
+Results reported at Wed Aug 19 18:36:18 2020
+
+Your job looked like:
+
+------------------------------------------------------------
+# LSBATCH: User input
+python train_nrd.py --model_name mono_model5
+------------------------------------------------------------
+
+Exited with exit code 1.
+
+Resource usage summary:
+
+    CPU time :                                   27.63 sec.
+    Max Memory :                                 5333 MB
+    Average Memory :                             625.00 MB
+    Total Requested Memory :                     24576.00 MB
+    Delta Memory :                               19243.00 MB
+    Max Swap :                                   -
+    Max Processes :                              3
+    Max Threads :                                8
+    Run time :                                   43 sec.
+    Turnaround time :                            126 sec.
+
+The output (if any) follows:
+
+Training model named:
+   mono_model5
+Models and tensorboard events files are saved to:
+   /cluster/scratch/takmaza/CVL/kitti-animations
+Training is using:
+   cuda
+Using split:
+   eigen_zhou
+There are 39810 training items and 4424 validation items
+
+Training
+/cluster/home/takmaza/.virtualenvs/rain/lib/python3.6/site-packages/torch/optim/lr_scheduler.py:82: UserWarning: Detected call of `lr_scheduler.step()` before `optimizer.step()`. In PyTorch 1.1.0 and later, you should call them in the opposite order: `optimizer.step()` before `lr_scheduler.step()`.  Failure to do this will result in PyTorch skipping the first value of the learning rate schedule.See more details at https://pytorch.org/docs/stable/optim.html#how-to-adjust-learning-rate
+  "https://pytorch.org/docs/stable/optim.html#how-to-adjust-learning-rate", UserWarning)
+Traceback (most recent call last):
+  File "train_nrd.py", line 18, in <module>
+    trainer.train()
+  File "/cluster/home/takmaza/md2-nrd/trainer_nrd.py", line 191, in train
+    self.run_epoch()
+  File "/cluster/home/takmaza/md2-nrd/trainer_nrd.py", line 203, in run_epoch
+    for batch_idx, inputs in enumerate(self.train_loader):
+  File "/cluster/home/takmaza/.virtualenvs/rain/lib/python3.6/site-packages/torch/utils/data/dataloader.py", line 819, in __next__
+    return self._process_data(data)
+  File "/cluster/home/takmaza/.virtualenvs/rain/lib/python3.6/site-packages/torch/utils/data/dataloader.py", line 846, in _process_data
+    data.reraise()
+  File "/cluster/home/takmaza/.virtualenvs/rain/lib/python3.6/site-packages/torch/_utils.py", line 369, in reraise
+    raise self.exc_type(msg)
+RuntimeError: Caught RuntimeError in DataLoader worker process 0.
+Original Traceback (most recent call last):
+  File "/cluster/home/takmaza/.virtualenvs/rain/lib/python3.6/site-packages/torch/utils/data/_utils/worker.py", line 178, in _worker_loop
+    data = fetcher.fetch(index)
+  File "/cluster/home/takmaza/.virtualenvs/rain/lib/python3.6/site-packages/torch/utils/data/_utils/fetch.py", line 44, in fetch
+    data = [self.dataset[idx] for idx in possibly_batched_index]
+  File "/cluster/home/takmaza/.virtualenvs/rain/lib/python3.6/site-packages/torch/utils/data/_utils/fetch.py", line 44, in <listcomp>
+    data = [self.dataset[idx] for idx in possibly_batched_index]
+  File "/cluster/home/takmaza/md2-nrd/datasets/mono_dataset.py", line 208, in __getitem__
+    loaded_flow, corresp, valid_map, p1, p2 = self.get_flow(folder, frame_index, side)
+  File "/cluster/home/takmaza/md2-nrd/datasets/kitti_dataset.py", line 184, in get_flow
+    corresp = torch.from_numpy(corresp.astype(np.int32)).to(self.device)
+  File "/cluster/home/takmaza/.virtualenvs/rain/lib/python3.6/site-packages/torch/cuda/__init__.py", line 177, in _lazy_init
+    "Cannot re-initialize CUDA in forked subprocess. " + msg)
+RuntimeError: Cannot re-initialize CUDA in forked subprocess. To use CUDA with multiprocessing, you must use the 'spawn' start method
+
+Sender: LSF System <lsfadmin@lo-s4-037>
+Subject: Job 7891336: <python train_nrd.py --model_name mono_model5> in cluster <leonhard> Exited
+
+Job <python train_nrd.py --model_name mono_model5> was submitted from host <lo-login-02> by user <takmaza> in cluster <leonhard> at Wed Aug 19 18:38:17 2020
+Job was executed on host(s) <6*lo-s4-037>, in queue <gpu.4h>, as user <takmaza> in cluster <leonhard> at Wed Aug 19 18:38:31 2020
+</cluster/home/takmaza> was used as the home directory.
+</cluster/home/takmaza/md2-nrd> was used as the working directory.
+Started at Wed Aug 19 18:38:31 2020
+Terminated at Wed Aug 19 18:39:38 2020
+Results reported at Wed Aug 19 18:39:38 2020
+
+Your job looked like:
+
+------------------------------------------------------------
+# LSBATCH: User input
+python train_nrd.py --model_name mono_model5
+------------------------------------------------------------
+
+Exited with exit code 1.
+
+Resource usage summary:
+
+    CPU time :                                   69.78 sec.
+    Max Memory :                                 6713 MB
+    Average Memory :                             2670.40 MB
+    Total Requested Memory :                     24576.00 MB
+    Delta Memory :                               17863.00 MB
+    Max Swap :                                   -
+    Max Processes :                              28
+    Max Threads :                                95
+    Run time :                                   70 sec.
+    Turnaround time :                            81 sec.
+
+The output (if any) follows:
+
+Training model named:
+   mono_model5
+Models and tensorboard events files are saved to:
+   /cluster/scratch/takmaza/CVL/kitti-animations
+Training is using:
+   cuda
+Using split:
+   eigen_zhou
+There are 39810 training items and 4424 validation items
+
+Training
+/cluster/home/takmaza/.virtualenvs/rain/lib/python3.6/site-packages/torch/optim/lr_scheduler.py:82: UserWarning: Detected call of `lr_scheduler.step()` before `optimizer.step()`. In PyTorch 1.1.0 and later, you should call them in the opposite order: `optimizer.step()` before `lr_scheduler.step()`.  Failure to do this will result in PyTorch skipping the first value of the learning rate schedule.See more details at https://pytorch.org/docs/stable/optim.html#how-to-adjust-learning-rate
+  "https://pytorch.org/docs/stable/optim.html#how-to-adjust-learning-rate", UserWarning)
+Traceback (most recent call last):
+  File "train_nrd.py", line 18, in <module>
+    trainer.train()
+  File "/cluster/home/takmaza/md2-nrd/trainer_nrd.py", line 197, in train
+    self.run_epoch()
+  File "/cluster/home/takmaza/md2-nrd/trainer_nrd.py", line 209, in run_epoch
+    for batch_idx, inputs in enumerate(self.train_loader):
+  File "/cluster/home/takmaza/.virtualenvs/rain/lib/python3.6/site-packages/torch/utils/data/dataloader.py", line 819, in __next__
+    return self._process_data(data)
+  File "/cluster/home/takmaza/.virtualenvs/rain/lib/python3.6/site-packages/torch/utils/data/dataloader.py", line 846, in _process_data
+    data.reraise()
+  File "/cluster/home/takmaza/.virtualenvs/rain/lib/python3.6/site-packages/torch/_utils.py", line 369, in reraise
+    raise self.exc_type(msg)
+RuntimeError: Caught RuntimeError in DataLoader worker process 0.
+Original Traceback (most recent call last):
+  File "/cluster/home/takmaza/.virtualenvs/rain/lib/python3.6/site-packages/torch/utils/data/_utils/worker.py", line 178, in _worker_loop
+    data = fetcher.fetch(index)
+  File "/cluster/home/takmaza/.virtualenvs/rain/lib/python3.6/site-packages/torch/utils/data/_utils/fetch.py", line 44, in fetch
+    data = [self.dataset[idx] for idx in possibly_batched_index]
+  File "/cluster/home/takmaza/.virtualenvs/rain/lib/python3.6/site-packages/torch/utils/data/_utils/fetch.py", line 44, in <listcomp>
+    data = [self.dataset[idx] for idx in possibly_batched_index]
+  File "/cluster/home/takmaza/md2-nrd/datasets/mono_dataset.py", line 208, in __getitem__
+    loaded_flow, corresp, valid_map, p1, p2 = self.get_flow(folder, frame_index, side)
+  File "/cluster/home/takmaza/md2-nrd/datasets/kitti_dataset.py", line 184, in get_flow
+    corresp = torch.from_numpy(corresp.astype(np.int32)).to(self.device)
+RuntimeError: CUDA error: all CUDA-capable devices are busy or unavailable
+
