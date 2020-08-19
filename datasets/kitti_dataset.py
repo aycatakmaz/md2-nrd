@@ -22,7 +22,7 @@ import cv2
 import time
 import torch
 
-HEIGHT, WIDTH = 128,416 # 320,896
+HEIGHT, WIDTH = 192,640 # 320,896
 TAG_FLOAT = 202021.25
 
 def load_as_flow(src_file):
@@ -100,12 +100,24 @@ class KITTIDataset(MonoDataset):
 
         return color
 
+def sample_pairs_with_flow(h, w, validity_mask, num_sample_points=100000):
+    #pdb.set_trace()
+    
+    validity_mask_valid = (torch.squeeze(validity_mask)).nonzero()
+    idx = torch.randint(low=0, high=validity_mask_valid.shape[0], size=(num_sample_points, 2))
+    idx = idx.type(torch.LongTensor)
+    p1 = validity_mask_valid[idx[:,0],:].type(torch.LongTensor)
+    p2 = validity_mask_valid[idx[:,1],:].type(torch.LongTensor)
+    return p1, p2
+
+
 def two_frames_checker(flowAB):
     h,w = flowAB.shape[0:2]
     x_mat = (np.expand_dims(range(w),0) * np.ones((h,1),dtype=np.int32)).astype(np.int32)
     y_mat = (np.ones((1,w),dtype=np.int32) * np.expand_dims(range(h),1)).astype(np.int32)
 
     d1 = flowAB
+
     r_cords = (y_mat + d1[:,:,1]).astype(np.int32)
     c_cords = (x_mat + d1[:,:,0]).astype(np.int32)
     mask1 = r_cords>h-1
@@ -119,46 +131,9 @@ def two_frames_checker(flowAB):
     c_cords[mask4] = 0
 
     corresp = np.dstack((r_cords,c_cords))
-    valid_map = (1-mask1) * (1-mask2) * (1-mask3) * (1-mask4)  #*valid_map *  
-    return corresp, valid_map, flowAB
+    valid_map = (1-mask1) * (1-mask2) * (1-mask3) * (1-mask4) 
+    return corresp, valid_map
 
-
-def two_frames_checker2(flowAB,flowBA,tau=6):
-    h,w = flowAB.shape[0:2]
-    x_mat = (np.expand_dims(range(w),0) * np.ones((h,1),dtype=np.int32)).astype(np.int32)
-    y_mat = (np.ones((1,w),dtype=np.int32) * np.expand_dims(range(h),1)).astype(np.int32)
-
-    d1 = flowAB
-    r_cords = (y_mat + d1[:,:,1]).astype(np.int32)
-    c_cords = (x_mat + d1[:,:,0]).astype(np.int32)
-    mask1 = r_cords>h-1
-    mask2 = r_cords<0
-    mask3 = c_cords>w-1
-    mask4 = c_cords<0
-
-    r_cords[mask1] = h-1
-    r_cords[mask2] = 0
-    c_cords[mask3] = w-1
-    c_cords[mask4] = 0
-
-    d2 = flowBA[r_cords,c_cords,:]
-    d = np.sqrt(np.sum((d1+d2)**2,axis=2))
-
-    valid_map = d <= 20 #tau #bidi_map at the source code
-    valid_map = valid_map.astype('uint8')
-
-    print('#'*35)
-    print(valid_map.shape)
-    print(mask1.shape)
-    print(np.sum(valid_map))
-    print(np.sum((1-mask1) * (1-mask2) * (1-mask3) * (1-mask4)))
-
-    corresp = np.dstack((r_cords,c_cords))
-    valid_map = (1-mask1) * (1-mask2) * (1-mask3) * (1-mask4) *valid_map 
-
-    print(valid_map.shape)
-    #print(np.sum(valid_map))
-    return corresp, valid_map, flowAB
 
 class KITTIRAWDataset(KITTIDataset):
     """KITTI dataset which loads the original velodyne depth maps for ground truth
@@ -193,55 +168,36 @@ class KITTIRAWDataset(KITTIDataset):
     def get_flow_path(self, folder, frame_index, side):
         f_str = "{:010d}{}".format(frame_index, '.flo')
         image_path = os.path.join(
-            '/cluster/scratch/takmaza/CVL/md2_flow_files_resized/vec', folder, "image_0{}/data".format(self.side_map[side]), f_str)
+            '/cluster/scratch/takmaza/CVL/RAFT_Flow_mini/vec', folder, "image_0{}/data".format(self.side_map[side]), f_str)
         return image_path  
 
     def get_flow(self, folder, frame_index, side):
         fl_path = self.get_flow_path(folder, frame_index, side)
+        #[frame_utils.read_gen(self.flow_list[index][img_ind]) for img_ind in list(range(self.num_frames-1))]
+        
         #print('getting flow path')
         #print(fl_path)
-
         loaded_flow = np.asarray(load_as_flow(fl_path))
         #print('loaded the flow')
         #print('flow size: ', loaded_flow.shape)
-        return two_frames_checker(loaded_flow)
+        corresp, valid_map = two_frames_checker(loaded_flow)
+        corresp = torch.from_numpy(corresp.astype(np.int32)).to(self.device)
+        valid_map = torch.from_numpy(valid_map).to(self.device)
+        loaded_flow = torch.from_numpy(loaded_flow.astype(np.float32)).to(self.device)
 
-    def get_flow2(self, folder, frame_index, side):
-        fl_path = self.get_flow_path(folder, frame_index, side)
-        fl_path2 = self.get_flow_path(folder, frame_index+1, side)
-
-        print('getting flow path')
-        print(fl_path)
-        print(fl_path2)
-
-        loaded_flow = np.asarray(load_as_flow(fl_path))
-        loaded_flow2 = np.asarray(load_as_flow(fl_path2))
-        #print('loaded the flow')
-        #print('flow size: ', loaded_flow.shape)
-        return two_frames_checker2(loaded_flow,loaded_flow2)
+        p1, p2 = sample_pairs_with_flow(h=self.height, w=self.width, validity_mask=valid_map, num_sample_points=100000)
+        return loaded_flow, corresp, valid_map, p1, p2
 
 
     def check_if_flow_exists(self, folder, frame_index, side):
         f_str = "{:010d}{}".format(frame_index, '.flo')
         image_path = os.path.join(
-            '/cluster/scratch/takmaza/CVL/md2_flow_files_resized/vec', folder, "image_0{}/data".format(self.side_map[side]), f_str)
+            '/cluster/scratch/takmaza/CVL/RAFT_Flow_mini/vec', folder, "image_0{}/data".format(self.side_map[side]), f_str)
         if os.path.exists(image_path):
             return True
         else:
-            return False 
+            return False
 
-    def check_if_flow_exists2(self, folder, frame_index, side):
-        f_str = "{:010d}{}".format(frame_index, '.flo')
-        f_str2 =  "{:010d}{}".format((frame_index+1), '.flo')
-        image_path = os.path.join(
-            '/cluster/scratch/takmaza/CVL/md2_flow_files_resized/vec', folder, "image_0{}/data".format(self.side_map[side]), f_str)
-        image_path2 = os.path.join(
-            '/cluster/scratch/takmaza/CVL/md2_flow_files_resized/vec', folder, "image_0{}/data".format(self.side_map[side]), f_str2)
-
-        if os.path.exists(image_path) and os.path.exists(image_path2):
-            return True
-        else:
-            return False 
 
 
 class KITTIOdomDataset(KITTIDataset):

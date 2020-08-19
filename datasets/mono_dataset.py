@@ -47,10 +47,10 @@ class MonoDataset(data.Dataset):
                  num_scales,
                  is_train=False,
                  img_ext='.jpg',
-                 is_flow=False):
+                 is_flow=False, device='cpu'):
         super(MonoDataset, self).__init__()
-
         self.data_path = data_path
+        self.device=device
         self.filenames = filenames
         self.height = height
         self.width = width
@@ -203,15 +203,16 @@ class MonoDataset(data.Dataset):
 
         if self.is_flow:
             if self.check_if_flow_exists(folder, frame_index, side):
-                inputs["flow_exists"] = torch.from_numpy(np.asarray([1]))
+                #inputs["flow_exists"] = torch.from_numpy(np.asarray([1]))
 
-                corresp, valid_map, loaded_flow = self.get_flow(folder, frame_index, side)
+                loaded_flow, corresp, valid_map, p1, p2 = self.get_flow(folder, frame_index, side)
 
                 #print(loaded_flow.shape)
 
-                inputs["flow"] = torch.from_numpy(loaded_flow.astype(np.float32))
-                inputs["corresp"]  = torch.from_numpy(corresp.astype(np.int32))
-                inputs["valid_mask"] = torch.from_numpy(valid_map)
+                inputs["flow"] = loaded_flow #torch.from_numpy(loaded_flow.astype(np.float32))
+                inputs["corresp"]  = corresp #torch.from_numpy(corresp.astype(np.int32))
+                inputs["valid_mask"] = valid_map #torch.from_numpy(valid_map)
+                inputs["pairs"] = torch.from_numpy(np.concatenate((p1,p2), axis=1))
                 
 
                 #inputs["flow"] = torch.from_numpy((np.expand_dims(loaded_flow, 0)).astype(np.float32))
@@ -219,17 +220,19 @@ class MonoDataset(data.Dataset):
                 #inputs["valid_map"] = torch.from_numpy((np.expand_dims(valid_map, 0)))
                 ##print('a: ', type(loaded_flow))
             else: 
-                inputs["flow_exists"] = torch.from_numpy(np.asarray([0]))
+                #inputs["flow_exists"] = torch.from_numpy(np.asarray([0]))
                 inputs["flow"] = torch.from_numpy(np.asarray(np.zeros((192,640,2)).astype(np.float32)))
                 inputs["corresp"]   = torch.from_numpy(np.asarray(np.zeros((192,640,2))).astype(np.int32))
                 inputs["valid_mask"] = torch.from_numpy(np.asarray(np.zeros((192,640))).astype(np.int64))
+                inputs["pairs"] = torch.from_numpy(np.asarray(np.zeros((100000,4))).astype(np.int64))
                 #print('b: ', type(loaded_flow))
 
         else:
-            inputs["flow_exists"] = torch.from_numpy(np.asarray([0]))
+            #inputs["flow_exists"] = torch.from_numpy(np.asarray([0]))
             inputs["flow"] = torch.from_numpy(np.asarray(np.zeros((192,640,2)).astype(np.float32)))
             inputs["corresp"]  = torch.from_numpy(np.asarray(np.zeros((192,640,2))).astype(np.int32))
             inputs["valid_mask"] = torch.from_numpy(np.asarray(np.zeros((192,640))).astype(np.int64))
+            inputs["pairs"] = torch.from_numpy(np.asarray(np.zeros((100000,4))).astype(np.int64))
 
         return inputs
 
@@ -245,11 +248,5 @@ class MonoDataset(data.Dataset):
     def get_flow(self,folder, frame_index, side):
         raise NotImplementedError
 
-    def get_flow2(self,folder, frame_index, side):
-        raise NotImplementedError
-
     def check_if_flow_exists(self,folder, frame_index, side):
-        raise NotImplementedError
-
-    def check_if_flow_exists2(self,folder, frame_index, side):
         raise NotImplementedError
