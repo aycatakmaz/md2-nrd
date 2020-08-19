@@ -46,8 +46,7 @@ class MonoDataset(data.Dataset):
                  frame_idxs,
                  num_scales,
                  is_train=False,
-                 img_ext='.jpg',
-                 is_flow=False):
+                 img_ext='.jpg'):
         super(MonoDataset, self).__init__()
 
         self.data_path = data_path
@@ -61,7 +60,6 @@ class MonoDataset(data.Dataset):
 
         self.is_train = is_train
         self.img_ext = img_ext
-        self.is_flow = is_flow
 
         self.loader = pil_loader
         self.to_tensor = transforms.ToTensor()
@@ -140,12 +138,10 @@ class MonoDataset(data.Dataset):
         inputs = {}
 
         do_color_aug = self.is_train and random.random() > 0.5
-        do_flip = False         # self.is_train and random.random() > 0.5
+        do_flip = self.is_train and random.random() > 0.5
 
         line = self.filenames[index].split()
         folder = line[0]
-        #print('printing folder: ', folder)
-        #print('printing line: ', line)
 
         if len(line) == 3:
             frame_index = int(line[1])
@@ -201,36 +197,6 @@ class MonoDataset(data.Dataset):
 
             inputs["stereo_T"] = torch.from_numpy(stereo_T)
 
-        if self.is_flow:
-            if self.check_if_flow_exists(folder, frame_index, side):
-                inputs["flow_exists"] = torch.from_numpy(np.asarray([1]))
-
-                corresp, valid_map, loaded_flow = self.get_flow(folder, frame_index, side)
-
-                #print(loaded_flow.shape)
-
-                inputs["flow"] = torch.from_numpy(loaded_flow.astype(np.float32))
-                inputs["corresp"]  = torch.from_numpy(corresp.astype(np.int32))
-                inputs["valid_mask"] = torch.from_numpy(valid_map)
-                
-
-                #inputs["flow"] = torch.from_numpy((np.expand_dims(loaded_flow, 0)).astype(np.float32))
-                #inputs["corresp"]  = torch.from_numpy((np.expand_dims(corresp, 0)).astype(np.int32))
-                #inputs["valid_map"] = torch.from_numpy((np.expand_dims(valid_map, 0)))
-                ##print('a: ', type(loaded_flow))
-            else: 
-                inputs["flow_exists"] = torch.from_numpy(np.asarray([0]))
-                inputs["flow"] = torch.from_numpy(np.asarray(np.zeros((192,640,2)).astype(np.float32)))
-                inputs["corresp"]   = torch.from_numpy(np.asarray(np.zeros((192,640,2))).astype(np.int32))
-                inputs["valid_mask"] = torch.from_numpy(np.asarray(np.zeros((192,640))).astype(np.int64))
-                #print('b: ', type(loaded_flow))
-
-        else:
-            inputs["flow_exists"] = torch.from_numpy(np.asarray([0]))
-            inputs["flow"] = torch.from_numpy(np.asarray(np.zeros((192,640,2)).astype(np.float32)))
-            inputs["corresp"]  = torch.from_numpy(np.asarray(np.zeros((192,640,2))).astype(np.int32))
-            inputs["valid_mask"] = torch.from_numpy(np.asarray(np.zeros((192,640))).astype(np.int64))
-
         return inputs
 
     def get_color(self, folder, frame_index, side, do_flip):
@@ -240,16 +206,4 @@ class MonoDataset(data.Dataset):
         raise NotImplementedError
 
     def get_depth(self, folder, frame_index, side, do_flip):
-        raise NotImplementedError
-
-    def get_flow(self,folder, frame_index, side):
-        raise NotImplementedError
-
-    def get_flow2(self,folder, frame_index, side):
-        raise NotImplementedError
-
-    def check_if_flow_exists(self,folder, frame_index, side):
-        raise NotImplementedError
-
-    def check_if_flow_exists2(self,folder, frame_index, side):
         raise NotImplementedError

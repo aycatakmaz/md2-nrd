@@ -14,6 +14,55 @@ import PIL.Image as pil
 from kitti_utils import generate_depth_map
 from .mono_dataset import MonoDataset
 
+import torch.utils.data as data
+from imageio import imread
+from path import Path
+import random
+import cv2
+import time
+import torch
+
+HEIGHT, WIDTH = 128,416 # 320,896
+TAG_FLOAT = 202021.25
+
+def load_as_flow(src_file):
+    #assert(os.path.exists(src_file))
+
+    if src_file.lower().endswith('.flo'):
+
+        with open(src_file, 'rb') as f:
+
+            # Parse .flo file header
+            tag = float(np.fromfile(f, np.float32, count=1)[0])
+            assert(tag == TAG_FLOAT)
+            w = np.fromfile(f, np.int32, count=1)[0]
+            h = np.fromfile(f, np.int32, count=1)[0]
+
+            # Read in flow data and reshape it
+            flow = np.fromfile(f, np.float32, count=h * w * 2)
+            flow.resize((h, w, 2))
+
+    elif src_file.lower().endswith('.png'):
+
+        # Read in .png file
+        flow_raw = cv2.imread(src_file, -1)
+
+        # Convert from [H,W,1] 16bit to [H,W,2] float formet
+        flow = flow_raw[:, :, 2:0:-1].astype(np.float32)
+        flow = flow - 32768
+        flow = flow / 64
+
+        # Clip flow values
+        flow[np.abs(flow) < 1e-10] = 1e-10
+
+        # Remove invalid flow values
+        invalid = (flow_raw[:, :, 0] == 0)
+        flow[invalid, :] = 0
+
+    else:
+        raise IOError
+    return flow
+
 
 class KITTIDataset(MonoDataset):
     """Superclass for different types of KITTI dataset loaders
@@ -21,7 +70,6 @@ class KITTIDataset(MonoDataset):
     def __init__(self, *args, **kwargs):
         super(KITTIDataset, self).__init__(*args, **kwargs)
 
-        # NOTE: Make sure your intrinsics matrix is *normalized* by the original image size    
         self.K = np.array([[0.58, 0, 0.5, 0],
                            [0, 1.92, 0.5, 0],
                            [0, 0, 1, 0],
@@ -43,6 +91,8 @@ class KITTIDataset(MonoDataset):
         return os.path.isfile(velo_filename)
 
     def get_color(self, folder, frame_index, side, do_flip):
+        #print('getting image path')
+        #print(self.get_image_path(folder, frame_index, side))
         color = self.loader(self.get_image_path(folder, frame_index, side))
 
         if do_flip:
@@ -50,6 +100,65 @@ class KITTIDataset(MonoDataset):
 
         return color
 
+def two_frames_checker(flowAB):
+    h,w = flowAB.shape[0:2]
+    x_mat = (np.expand_dims(range(w),0) * np.ones((h,1),dtype=np.int32)).astype(np.int32)
+    y_mat = (np.ones((1,w),dtype=np.int32) * np.expand_dims(range(h),1)).astype(np.int32)
+
+    d1 = flowAB
+    r_cords = (y_mat + d1[:,:,1]).astype(np.int32)
+    c_cords = (x_mat + d1[:,:,0]).astype(np.int32)
+    mask1 = r_cords>h-1
+    mask2 = r_cords<0
+    mask3 = c_cords>w-1
+    mask4 = c_cords<0
+
+    r_cords[mask1] = h-1
+    r_cords[mask2] = 0
+    c_cords[mask3] = w-1
+    c_cords[mask4] = 0
+
+    corresp = np.dstack((r_cords,c_cords))
+    valid_map = (1-mask1) * (1-mask2) * (1-mask3) * (1-mask4)  #*valid_map *  
+    return corresp, valid_map, flowAB
+
+
+def two_frames_checker2(flowAB,flowBA,tau=6):
+    h,w = flowAB.shape[0:2]
+    x_mat = (np.expand_dims(range(w),0) * np.ones((h,1),dtype=np.int32)).astype(np.int32)
+    y_mat = (np.ones((1,w),dtype=np.int32) * np.expand_dims(range(h),1)).astype(np.int32)
+
+    d1 = flowAB
+    r_cords = (y_mat + d1[:,:,1]).astype(np.int32)
+    c_cords = (x_mat + d1[:,:,0]).astype(np.int32)
+    mask1 = r_cords>h-1
+    mask2 = r_cords<0
+    mask3 = c_cords>w-1
+    mask4 = c_cords<0
+
+    r_cords[mask1] = h-1
+    r_cords[mask2] = 0
+    c_cords[mask3] = w-1
+    c_cords[mask4] = 0
+
+    d2 = flowBA[r_cords,c_cords,:]
+    d = np.sqrt(np.sum((d1+d2)**2,axis=2))
+
+    valid_map = d <= 20 #tau #bidi_map at the source code
+    valid_map = valid_map.astype('uint8')
+
+    print('#'*35)
+    print(valid_map.shape)
+    print(mask1.shape)
+    print(np.sum(valid_map))
+    print(np.sum((1-mask1) * (1-mask2) * (1-mask3) * (1-mask4)))
+
+    corresp = np.dstack((r_cords,c_cords))
+    valid_map = (1-mask1) * (1-mask2) * (1-mask3) * (1-mask4) *valid_map 
+
+    print(valid_map.shape)
+    #print(np.sum(valid_map))
+    return corresp, valid_map, flowAB
 
 class KITTIRAWDataset(KITTIDataset):
     """KITTI dataset which loads the original velodyne depth maps for ground truth
@@ -58,6 +167,7 @@ class KITTIRAWDataset(KITTIDataset):
         super(KITTIRAWDataset, self).__init__(*args, **kwargs)
 
     def get_image_path(self, folder, frame_index, side):
+        #print('entered here')
         f_str = "{:010d}{}".format(frame_index, self.img_ext)
         image_path = os.path.join(
             self.data_path, folder, "image_0{}/data".format(self.side_map[side]), f_str)
@@ -79,6 +189,59 @@ class KITTIRAWDataset(KITTIDataset):
             depth_gt = np.fliplr(depth_gt)
 
         return depth_gt
+
+    def get_flow_path(self, folder, frame_index, side):
+        f_str = "{:010d}{}".format(frame_index, '.flo')
+        image_path = os.path.join(
+            '/cluster/scratch/takmaza/CVL/md2_flow_files_resized/vec', folder, "image_0{}/data".format(self.side_map[side]), f_str)
+        return image_path  
+
+    def get_flow(self, folder, frame_index, side):
+        fl_path = self.get_flow_path(folder, frame_index, side)
+        #print('getting flow path')
+        #print(fl_path)
+
+        loaded_flow = np.asarray(load_as_flow(fl_path))
+        #print('loaded the flow')
+        #print('flow size: ', loaded_flow.shape)
+        return two_frames_checker(loaded_flow)
+
+    def get_flow2(self, folder, frame_index, side):
+        fl_path = self.get_flow_path(folder, frame_index, side)
+        fl_path2 = self.get_flow_path(folder, frame_index+1, side)
+
+        print('getting flow path')
+        print(fl_path)
+        print(fl_path2)
+
+        loaded_flow = np.asarray(load_as_flow(fl_path))
+        loaded_flow2 = np.asarray(load_as_flow(fl_path2))
+        #print('loaded the flow')
+        #print('flow size: ', loaded_flow.shape)
+        return two_frames_checker2(loaded_flow,loaded_flow2)
+
+
+    def check_if_flow_exists(self, folder, frame_index, side):
+        f_str = "{:010d}{}".format(frame_index, '.flo')
+        image_path = os.path.join(
+            '/cluster/scratch/takmaza/CVL/md2_flow_files_resized/vec', folder, "image_0{}/data".format(self.side_map[side]), f_str)
+        if os.path.exists(image_path):
+            return True
+        else:
+            return False 
+
+    def check_if_flow_exists2(self, folder, frame_index, side):
+        f_str = "{:010d}{}".format(frame_index, '.flo')
+        f_str2 =  "{:010d}{}".format((frame_index+1), '.flo')
+        image_path = os.path.join(
+            '/cluster/scratch/takmaza/CVL/md2_flow_files_resized/vec', folder, "image_0{}/data".format(self.side_map[side]), f_str)
+        image_path2 = os.path.join(
+            '/cluster/scratch/takmaza/CVL/md2_flow_files_resized/vec', folder, "image_0{}/data".format(self.side_map[side]), f_str2)
+
+        if os.path.exists(image_path) and os.path.exists(image_path2):
+            return True
+        else:
+            return False 
 
 
 class KITTIOdomDataset(KITTIDataset):

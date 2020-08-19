@@ -20,11 +20,11 @@ class MonodepthOptions:
         self.parser.add_argument("--data_path",
                                  type=str,
                                  help="path to the training data",
-                                 default=os.path.join(file_dir, "kitti_data"))
+                                 default='/cluster/scratch/takmaza/CVL/kitti_data')
         self.parser.add_argument("--log_dir",
                                  type=str,
                                  help="log directory",
-                                 default=os.path.join(os.path.expanduser("~"), "tmp"))
+                                 default='/cluster/scratch/takmaza/CVL/kitti-animations')
 
         # TRAINING options
         self.parser.add_argument("--model_name",
