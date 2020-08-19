@@ -1,0 +1,155 @@
+Sender: LSF System <lsfadmin@lo-s4-034>
+Subject: Job 7882049: <python train.py --model_name mono_model3> in cluster <leonhard> Exited
+
+Job <python train.py --model_name mono_model3> was submitted from host <lo-login-02> by user <takmaza> in cluster <leonhard> at Wed Aug 19 16:51:07 2020
+Job was executed on host(s) <6*lo-s4-034>, in queue <gpu.4h>, as user <takmaza> in cluster <leonhard> at Wed Aug 19 16:51:35 2020
+</cluster/home/takmaza> was used as the home directory.
+</cluster/home/takmaza/md2-nrd> was used as the working directory.
+Started at Wed Aug 19 16:51:35 2020
+Terminated at Wed Aug 19 17:01:59 2020
+Results reported at Wed Aug 19 17:01:59 2020
+
+Your job looked like:
+
+------------------------------------------------------------
+# LSBATCH: User input
+python train.py --model_name mono_model3
+------------------------------------------------------------
+
+TERM_OWNER: job killed by owner.
+Exited with exit code 1.
+
+Resource usage summary:
+
+    CPU time :                                   5287.29 sec.
+    Max Memory :                                 24576 MB
+    Average Memory :                             21897.96 MB
+    Total Requested Memory :                     24576.00 MB
+    Delta Memory :                               0.00 MB
+    Max Swap :                                   -
+    Max Processes :                              27
+    Max Threads :                                109
+    Run time :                                   630 sec.
+    Turnaround time :                            652 sec.
+
+The output (if any) follows:
+
+Training model named:
+   mono_model3
+Models and tensorboard events files are saved to:
+   /cluster/scratch/takmaza/CVL/kitti-animations
+Training is using:
+   cuda
+Using split:
+   eigen_zhou
+There are 39810 training items and 4424 validation items
+
+Training
+/cluster/home/takmaza/.virtualenvs/rain/lib/python3.6/site-packages/torch/optim/lr_scheduler.py:82: UserWarning: Detected call of `lr_scheduler.step()` before `optimizer.step()`. In PyTorch 1.1.0 and later, you should call them in the opposite order: `optimizer.step()` before `lr_scheduler.step()`.  Failure to do this will result in PyTorch skipping the first value of the learning rate schedule.See more details at https://pytorch.org/docs/stable/optim.html#how-to-adjust-learning-rate
+  "https://pytorch.org/docs/stable/optim.html#how-to-adjust-learning-rate", UserWarning)
+epoch   0 | batch      0 | examples/s:   3.4 | loss: 0.16219 | time elapsed: 00h00m22s | time left: 00h00m00s
+epoch   0 | batch    250 | examples/s:  18.6 | loss: 0.12780 | time elapsed: 00h03m16s | time left: 14h26m03s
+epoch   0 | batch    500 | examples/s:  17.7 | loss: 0.13587 | time elapsed: 00h06m11s | time left: 13h35m12s
+epoch   0 | batch    750 | examples/s:  16.7 | loss: 0.12934 | time elapsed: 00h09m09s | time left: 13h21m30s
+Traceback (most recent call last):
+  File "train.py", line 18, in <module>
+    trainer.train()
+  File "/cluster/home/takmaza/md2-nrd/trainer.py", line 189, in train
+    self.run_epoch()
+  File "/cluster/home/takmaza/md2-nrd/trainer.py", line 207, in run_epoch
+    self.model_optimizer.zero_grad()
+KeyboardInterrupt
+Sender: LSF System <lsfadmin@lo-s4-039>
+Subject: Job 7879525: <python train.py --model_name mono_model> in cluster <leonhard> Exited
+
+Job <python train.py --model_name mono_model> was submitted from host <lo-login-02> by user <takmaza> in cluster <leonhard> at Wed Aug 19 16:28:57 2020
+Job was executed on host(s) <6*lo-s4-039>, in queue <gpu.4h>, as user <takmaza> in cluster <leonhard> at Wed Aug 19 16:29:10 2020
+</cluster/home/takmaza> was used as the home directory.
+</cluster/home/takmaza/md2-nrd> was used as the working directory.
+Started at Wed Aug 19 16:29:10 2020
+Terminated at Wed Aug 19 17:02:04 2020
+Results reported at Wed Aug 19 17:02:04 2020
+
+Your job looked like:
+
+------------------------------------------------------------
+# LSBATCH: User input
+python train.py --model_name mono_model
+------------------------------------------------------------
+
+TERM_OWNER: job killed by owner.
+Exited with exit code 1.
+
+Resource usage summary:
+
+    CPU time :                                   13745.49 sec.
+    Max Memory :                                 24576 MB
+    Average Memory :                             24124.17 MB
+    Total Requested Memory :                     24576.00 MB
+    Delta Memory :                               0.00 MB
+    Max Swap :                                   -
+    Max Processes :                              27
+    Max Threads :                                109
+    Run time :                                   2002 sec.
+    Turnaround time :                            1987 sec.
+
+The output (if any) follows:
+
+Training model named:
+   mono_model
+Models and tensorboard events files are saved to:
+   /cluster/scratch/takmaza/CVL/kitti-animations
+Training is using:
+   cuda
+Using split:
+   eigen_zhou
+There are 39810 training items and 4424 validation items
+
+Training
+/cluster/home/takmaza/.virtualenvs/rain/lib/python3.6/site-packages/torch/optim/lr_scheduler.py:82: UserWarning: Detected call of `lr_scheduler.step()` before `optimizer.step()`. In PyTorch 1.1.0 and later, you should call them in the opposite order: `optimizer.step()` before `lr_scheduler.step()`.  Failure to do this will result in PyTorch skipping the first value of the learning rate schedule.See more details at https://pytorch.org/docs/stable/optim.html#how-to-adjust-learning-rate
+  "https://pytorch.org/docs/stable/optim.html#how-to-adjust-learning-rate", UserWarning)
+Process Process-3:
+Traceback (most recent call last):
+  File "/cluster/apps/python/3.6.4/lib64/python3.6/multiprocessing/process.py", line 258, in _bootstrap
+    self.run()
+  File "/cluster/apps/python/3.6.4/lib64/python3.6/multiprocessing/process.py", line 93, in run
+    self._target(*self._args, **self._kwargs)
+  File "/cluster/home/takmaza/.virtualenvs/rain/lib/python3.6/site-packages/torch/utils/data/_utils/worker.py", line 196, in _worker_loop
+    pass
+KeyboardInterrupt
+Exception ignored in: <bound method _MultiProcessingDataLoaderIter.__del__ of <torch.utils.data.dataloader._MultiProcessingDataLoaderIter object at 0x2b06c494ceb8>>
+Traceback (most recent call last):
+  File "/cluster/home/takmaza/.virtualenvs/rain/lib/python3.6/site-packages/torch/utils/data/dataloader.py", line 926, in __del__
+    self._shutdown_workers()
+  File "/cluster/home/takmaza/.virtualenvs/rain/lib/python3.6/site-packages/torch/utils/data/dataloader.py", line 906, in _shutdown_workers
+    w.join()
+  File "/cluster/apps/python/3.6.4/lib64/python3.6/multiprocessing/process.py", line 124, in join
+    res = self._popen.wait(timeout)
+  File "/cluster/apps/python/3.6.4/lib64/python3.6/multiprocessing/popen_fork.py", line 57, in wait
+    return self.poll(os.WNOHANG if timeout == 0.0 else 0)
+  File "/cluster/apps/python/3.6.4/lib64/python3.6/multiprocessing/popen_fork.py", line 35, in poll
+    pid, sts = os.waitpid(self.pid, flag)
+  File "/cluster/home/takmaza/.virtualenvs/rain/lib/python3.6/site-packages/torch/utils/data/_utils/signal_handling.py", line 66, in handler
+    _error_if_any_worker_fails()
+RuntimeError: DataLoader worker (pid 8721) exited unexpectedly with exit code 1. Details are lost due to multiprocessing. Rerunning with num_workers=0 may give better error trace.
+epoch   0 | batch      0 | examples/s:   3.9 | loss: 0.19162 | time elapsed: 00h00m13s | time left: 00h00m00s
+epoch   0 | batch    250 | examples/s:  14.1 | loss: 0.13222 | time elapsed: 00h03m43s | time left: 16h24m42s
+epoch   0 | batch    500 | examples/s:  14.9 | loss: 0.13244 | time elapsed: 00h07m10s | time left: 15h44m49s
+epoch   0 | batch    750 | examples/s:  15.5 | loss: 0.14399 | time elapsed: 00h10m38s | time left: 15h30m04s
+epoch   0 | batch   1000 | examples/s:  14.9 | loss: 0.11735 | time elapsed: 00h14m04s | time left: 15h19m16s
+epoch   0 | batch   1250 | examples/s:  14.9 | loss: 0.13122 | time elapsed: 00h17m31s | time left: 15h12m52s
+epoch   0 | batch   1500 | examples/s:  15.5 | loss: 0.12314 | time elapsed: 00h20m57s | time left: 15h06m12s
+epoch   0 | batch   1750 | examples/s:  16.0 | loss: 0.11066 | time elapsed: 00h24m23s | time left: 15h00m19s
+epoch   0 | batch   2000 | examples/s:  14.9 | loss: 0.10517 | time elapsed: 00h27m50s | time left: 14h55m37s
+Traceback (most recent call last):
+  File "train.py", line 18, in <module>
+    trainer.train()
+  File "/cluster/home/takmaza/md2-nrd/trainer.py", line 189, in train
+    self.run_epoch()
+  File "/cluster/home/takmaza/md2-nrd/trainer.py", line 205, in run_epoch
+    outputs, losses = self.process_batch(inputs)
+  File "/cluster/home/takmaza/md2-nrd/trainer.py", line 258, in process_batch
+    losses = self.compute_losses(inputs, outputs)
+  File "/cluster/home/takmaza/md2-nrd/trainer.py", line 469, in compute_losses
+    identity_reprojection_loss.shape).cuda() * 0.00001
+KeyboardInterrupt
