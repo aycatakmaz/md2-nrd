@@ -219,55 +219,54 @@ class Trainer:
         depth_ref_cam_points = depth_ref_cam_points[:,0:3,:].view(self.opt.batch_size,3,self.opt.height,self.opt.width)
         depth_ref_cam_points = depth_ref_cam_points.permute(0, 2, 3, 1)
 
-        pdb.set_trace()
+        #pdb.set_trace()
 
-        loss_sum = 0
-        for iii in range(inputs['corresp'].shape[0])
-            corresp_list = inputs['corresp'].type(torch.LongTensor)
-            p1, p2 = inputs['pairs'][:,:,0:2], inputs['pairs'][:,:,2:]
-            corresp_p1 = corresp_list[iii, p1[iii,:,0],p1[iii,:,1],:]
-            corresp_p2 = corresp_list[iii, p2[iii,:,0],p2[iii,:,1],:]
-            xyz_p1 = depth_tgt_cam_points[iii, p1[iii,:,0],p1[iii,:,1],:]
-            xyz_p2 = depth_tgt_cam_points[iii, p2[iii,:,0],p2[iii,:,1],:]
-            xyz_corresp1 = depth_ref_cam_points[:, corresp_p1[:,0], corresp_p1[:,1],:]
-            xyz_corresp2 = depth_ref_cam_points[:, corresp_p2[:,0], corresp_p2[:,1],:]
-            d_p12 = torch.norm((xyz_p2 - xyz_p1), p=2, dim=1).type(torch.DoubleTensor)
-            d_corresp12 = torch.norm((xyz_corresp2 - xyz_corresp1), p=2, dim=1).type(torch.DoubleTensor)
+        corresp_list = inputs['corresp'].type(torch.LongTensor)
+        p1, p2 = inputs['pairs'][:,:,0:2], inputs['pairs'][:,:,2:]
+        corresp_p1 = torch.cat([torch.unsqueeze(corresp_list[iii,p1[iii,:,0],p1[iii,:,1]],dim=0) for iii in range(corresp_list.shape[0])], dim=0)
+        corresp_p2 = torch.cat([torch.unsqueeze(corresp_list[iii,p2[iii,:,0],p2[iii,:,1]],dim=0) for iii in range(corresp_list.shape[0])], dim=0)
+        xyz_p1 = torch.cat([torch.unsqueeze(depth_tgt_cam_points[iii,p1[iii,:,0],p1[iii,:,1]],dim=0) for iii in range(depth_tgt_cam_points.shape[0])], dim=0)
+        xyz_p2 = torch.cat([torch.unsqueeze(depth_tgt_cam_points[iii,p2[iii,:,0],p2[iii,:,1]],dim=0) for iii in range(depth_tgt_cam_points.shape[0])], dim=0)
+        xyz_corresp1 = torch.cat([torch.unsqueeze(depth_ref_cam_points[iii,corresp_p1[iii,:,0],corresp_p1[iii,:,1]],dim=0) for iii in range(depth_ref_cam_points.shape[0])], dim=0)
+        xyz_corresp2 = torch.cat([torch.unsqueeze(depth_ref_cam_points[iii,corresp_p2[iii,:,0],corresp_p2[iii,:,1]],dim=0) for iii in range(depth_ref_cam_points.shape[0])], dim=0)
+        #pdb.set_trace()
+        d_p12 = torch.norm((xyz_p2 - xyz_p1), p=2, dim=2).type(torch.DoubleTensor)
+        d_corresp12 = torch.norm((xyz_corresp2 - xyz_corresp1), p=2, dim=2).type(torch.DoubleTensor)
 
-            if self.opt.use_dist_normalization and not self.opt.use_rel_dist_normalization:
-                d_p12_normalized = d_p12.div(torch.sum(d_p12)) 
-                d_corresp12_normalized = d_corresp12.div(torch.sum(d_corresp12)) + 0.000000001
+        if self.opt.use_dist_normalization and not self.opt.use_rel_dist_normalization:
+            d_p12_normalized = d_p12.div(torch.sum(d_p12)) 
+            d_corresp12_normalized = d_corresp12.div(torch.sum(d_corresp12)) + 0.000000001
 
-            elif self.opt.use_rel_dist_normalization:
-                d_p12_normalized = d_p12.div(d_p12 + d_corresp12 + 0.000000001)
-                d_corresp12_normalized = d_corresp12.div(d_p12 + d_corresp12 + 0.000000001)
+        elif self.opt.use_rel_dist_normalization:
+            d_p12_normalized = d_p12.div(d_p12 + d_corresp12 + 0.000000001)
+            d_corresp12_normalized = d_corresp12.div(d_p12 + d_corresp12 + 0.000000001)
 
-            else:
-                d_p12_normalized = d_p12
-                d_corresp12_normalized = d_corresp12
+        else:
+            d_p12_normalized = d_p12
+            d_corresp12_normalized = d_corresp12
 
-            d_loss = torch.sum(torch.abs(d_p12_normalized - d_corresp12_normalized))
+        d_loss = torch.sum(torch.abs(d_p12_normalized - d_corresp12_normalized))
 
-            if self.opt.use_rel_dist_normalization:
-                d_loss = d_loss
-            elif self.opt.loss_divisor_1:
-                d_loss = d_loss * (1/torch.sum(d_p12_normalized+d_corresp12_normalized))# + 1/torch.sum(weights_from_embs_iii))
-            elif self.opt.loss_divisor_2:
-                d_loss = d_loss / (torch.sum((d_p12_normalized+d_corresp12_normalized)))# * torch.sum(weights_from_embs_iii))
-            else:
-                d_loss = d_loss /torch.sum((d_p12_normalized+d_corresp12_normalized))
+        if self.opt.use_rel_dist_normalization:
+            d_loss = d_loss
+        elif self.opt.loss_divisor_1:
+            d_loss = d_loss * (1/torch.sum(d_p12_normalized+d_corresp12_normalized))# + 1/torch.sum(weights_from_embs_iii))
+        elif self.opt.loss_divisor_2:
+            d_loss = d_loss / (torch.sum((d_p12_normalized+d_corresp12_normalized)))# * torch.sum(weights_from_embs_iii))
+        else:
+            d_loss = d_loss /torch.sum((d_p12_normalized+d_corresp12_normalized))
 
 
-            if self.opt.loss_percentage:
-                d_loss = torch.sum((torch.abs(d_p12_normalized - d_corresp12_normalized)).div(torch.abs(d_p12_normalized + d_corresp12_normalized + eps)))
-         
-            loss_sum += d_loss
-            
+        if self.opt.loss_percentage:
+            d_loss = torch.sum((torch.abs(d_p12_normalized - d_corresp12_normalized)).div(torch.abs(d_p12_normalized + d_corresp12_normalized + eps)))
+     
+
         # Otherwise, we only feed the image with frame_id 0 through the depth encoder
-        features = self.models["encoder"](inputs["color_aug", 0, 0])
+        features = self.models["encoder"](inputs["color", 0, 0])
         outputs = self.models["depth"](features)
 
         self.generate_images_pred(inputs, outputs)
+        losses = self.compute_losses(inputs, outputs, d_loss)
 
         return outputs, losses
 
@@ -325,7 +324,7 @@ class Trainer:
 
         return reprojection_loss
 
-    def compute_losses(self, inputs, outputs):
+    def compute_losses(self, inputs, outputs, d_loss):
         """Compute the reprojection and smoothness losses for a minibatch
         """
         losses = {}
@@ -342,7 +341,8 @@ class Trainer:
         norm_disp = disp / (mean_disp + 1e-7)
         smooth_loss = get_smooth_loss(norm_disp, color)
 
-        loss += self.opt.disparity_smoothness * smooth_loss
+        loss += d_loss
+        #loss += self.opt.disparity_smoothness * smooth_loss
         total_loss += loss
         losses["loss/{}".format(0)] = loss
 

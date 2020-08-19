@@ -102,26 +102,7 @@ class MonodepthOptions:
                                  default=15)
 
         # ABLATION options
-        self.parser.add_argument("--v1_multiscale",
-                                 help="if set, uses monodepth v1 multiscale",
-                                 action="store_true")
-        self.parser.add_argument("--avg_reprojection",
-                                 help="if set, uses average reprojection loss",
-                                 action="store_true")
-        self.parser.add_argument("--disable_automasking",
-                                 help="if set, doesn't do auto-masking",
-                                 action="store_true")
-        self.parser.add_argument("--predictive_mask",
-                                 help="if set, uses a predictive masking scheme as in Zhou et al",
-                                 action="store_true")
-        self.parser.add_argument("--no_ssim",
-                                 help="if set, disables ssim in the loss",
-                                 action="store_true")
-        self.parser.add_argument("--weights_init",
-                                 type=str,
-                                 help="pretrained or scratch",
-                                 default="pretrained",
-                                 choices=["pretrained", "scratch"])
+
         self.parser.add_argument("--pose_model_input",
                                  type=str,
                                  help="how many images the pose network gets",
@@ -202,6 +183,50 @@ class MonodepthOptions:
                                  help="if set will perform the flipping post processing "
                                       "from the original monodepth paper",
                                  action="store_true")
+
+        # ABLATION options
+        self.parser.add_argument("--load_depth", help="uses the flow obtained from the raft network", action="store_true")
+        self.parser.add_argument("--use_raft_flow", help="uses the flow obtained from the raft network", action="store_true")
+        self.parser.add_argument("--loss_percentage", help="w*e/d", action="store_true")
+        self.parser.add_argument("--check_both_weights", help="calculate gt weights for comparison", action="store_true")
+        self.parser.add_argument("--use_embedding_weights", help="if set, uses the learned embeddings to derive the weights", action="store_true")
+        self.parser.add_argument("--use_only_sparse_sup", help="if set, uses only sparse gt depth supervision", action="store_true")
+        self.parser.add_argument("--use_sparse_order_sup", help="if set, uses sparse point order supervision", action="store_true" )
+        self.parser.add_argument("--use_rel_dist_normalization", help="if set, uses relative distance normalization for the calculation of loss", action="store_true")
+        self.parser.add_argument("--check_gt_weights", help="calculate gt weights for comparison", action="store_true")
+        self.parser.add_argument("--loss_divisor_1", help="multiplies the loss by (1/s1 + 1/s2)", action="store_true")
+        self.parser.add_argument("--loss_divisor_2", help="multiplies the loss by (1/(s1*s2))", action="store_true")
+        self.parser.add_argument("--separate_enc_wo_flow", help="separates encoders wo opt flow", action="store_true")
+        self.parser.add_argument("--experiment_one", help="separates weights from iso loss", action="store_true")
+        self.parser.add_argument("--use_optical_flow_emb", help="if set, uses the weight learning network which uses optical flow and image luminance", action="store_true")
+        self.parser.add_argument("--use_cyclic_cons", help="if set, uses an additional weight supervision loss based on the predicted depth", action="store_true")
+        self.parser.add_argument("--scale_cyclic", help="if set, cyclic loss is scaled with the isometric loss", action="store_true")
+        self.parser.add_argument("--ovf_to_weights", help="if set, uses only one frame to overfit to the gt weights", action="store_true")
+        self.parser.add_argument("--use_frame_normalization", help="if set, performs normalization across frames", action="store_true")
+        self.parser.add_argument("--use_smoothness_loss", help="if set, adds smoothness loss to the objective", action="store_true")
+        self.parser.add_argument("--use_weight_sup", help="if set, uses gt weight supervision for ", action="store_true")
+        self.parser.add_argument("--use_cosine_dist", help="if set, uses cosine dist for weight calculation", action="store_true")
+        self.parser.add_argument("--force_w_01", help="if set, forces w to approach either 0 or 1", action="store_true")
+        self.parser.add_argument("--learn_weights", help="if set, learns the pair weights", action="store_true")
+        self.parser.add_argument("--scaled_weight_loss", help="if set, weight loss is scaled with the isometric loss", action="store_true")
+        self.parser.add_argument("--save_video", help="if set, saves depth prediction videos", action="store_true")
+        self.parser.add_argument("--save_embeddings", help="if set, saves pixel embeddings", action="store_true")
+        self.parser.add_argument("--seq_random_pairs", help="if set, uses full sequences", action="store_true")
+        self.parser.add_argument("--track_unsup_loss", help="if set, tracks the unsup loss as well", action="store_true")
+        self.parser.add_argument("--use_clamping", help="if set, clamps the ground truth depth", action="store_true")
+        self.parser.add_argument("--use_gt_depth", help="if set, uses ground truth depth data for the training", action="store_true")
+        self.parser.add_argument("--use_gt_distances", help="if set, uses ground truth data for the calculation of pairwise distances", action="store_true")
+        self.parser.add_argument("--use_gt_weights", help="if set, uses ground truth weights for the calculation of loss", action="store_true")
+        self.parser.add_argument("--use_gt_scale", help="if set, uses ground truth scale for the calculation of loss", action="store_true")
+        self.parser.add_argument("--use_01_norm", help="if set, normalizes the ground truth depth", action="store_true")
+        self.parser.add_argument("--use_dist_normalization", help="if set, uses distance normalization for the calculation of loss", action="store_true")
+        self.parser.add_argument("--v1_multiscale", help="if set, uses monodepth v1 multiscale", action="store_true")
+        self.parser.add_argument("--avg_reprojection", help="if set, uses average reprojection loss", action="store_true")
+        self.parser.add_argument("--disable_automasking", help="if set, doesn't do auto-masking", action="store_true")
+        self.parser.add_argument("--predictive_mask", help="if set, uses a predictive masking scheme as in Zhou et al", action="store_true")
+        self.parser.add_argument("--no_ssim", help="if set, disables ssim in the loss", action="store_true")
+        self.parser.add_argument("--weights_init", type=str, help="pretrained or scratch", default="pretrained", choices=["pretrained", "scratch"])
+
 
     def parse(self):
         self.options = self.parser.parse_args()
