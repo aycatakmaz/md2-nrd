@@ -182,7 +182,7 @@ class Trainer:
         for self.epoch in range(self.opt.num_epochs):
             if (self.epoch + 1) % self.opt.save_frequency == 0:
                 self.save_model()
-            if  self.epoch==0: #(self.epoch+1)%self.opt.video_save_frequency==0: #(self.epoch+1)%5==0: #self.epoch==0: #
+            if  (self.epoch+1)%self.opt.video_save_frequency==0: #(self.epoch+1)%5==0: #self.epoch==0: #
                 print('printing epoch: ', self.epoch)
                 self.run_epoch(log_vid=True)
             else:
@@ -492,8 +492,8 @@ class Trainer:
             img_list = list(self.normalize(seq_depths_plasma))
             input_images_nm = list(self.normalize(input_images))
             Writer = animation.writers['ffmpeg']
-            writer = Writer(fps=10,  bitrate=1800)
-            self.plot_images(input_images_nm,img_list).save(root_anim_dir+'/anim_embeddings_'+ str(lkey) + '_' + str(self.epoch).zfill(3)+'.mp4', writer=writer)
+            writer = Writer(fps=12,  bitrate=1800)
+            self.plot_images(input_images_nm,img_list).save(root_anim_dir+'/anim_embeddings_'+ str(self.opt.model_name) + '_' + str(lkey) + '_' + str(self.epoch).zfill(3)+'.mp4', writer=writer)
         self.set_train() 
 
 
