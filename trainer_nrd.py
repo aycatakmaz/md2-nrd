@@ -303,7 +303,7 @@ class Trainer:
 
         self.generate_images_pred(inputs, outputs)
         losses = self.compute_losses(inputs, outputs, d_loss)
-        losses['iso_loss'] = iso_loss
+        #losses['iso_loss'] = iso_loss
         return outputs, losses
 
 
