@@ -305,7 +305,7 @@ class Trainer:
         features = self.models["encoder"](inputs["color", 0, 0])
         outputs = self.models["depth"](features)
 
-        d_loss = d_loss.div(mean_depth)
+        d_loss = (d_loss.to(self.device)).div(mean_depth)
         self.generate_images_pred(inputs, outputs)
         losses = self.compute_losses(inputs, outputs, d_loss)
         losses['mean_depth'] = mean_depth
