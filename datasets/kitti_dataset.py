@@ -103,7 +103,7 @@ class KITTIDataset(MonoDataset):
         return color
 
 def sample_pairs_with_flow(h, w, validity_mask, num_sample_points=100000, d_lim=30, flow_lim=100, norm_lim=3):
-    #validity_mask_valid= np.argwhere(validity_mask==1) # 1 mi true mu
+    #validity_mask_valid= np.argwhere(validity_mask==1) 
 
     validity_mask_valid = (torch.squeeze(validity_mask)).nonzero()
     idx = torch.randint(low=0, high=validity_mask_valid.shape[0], size=(num_sample_points, 2))
