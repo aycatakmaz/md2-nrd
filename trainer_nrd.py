@@ -113,8 +113,11 @@ class Trainer:
             val_dataset, self.opt.batch_size, True,
             num_workers=self.opt.num_workers, pin_memory=True, drop_last=True)
 
+        val_dataset_vid = self.dataset(
+            self.opt.data_path, sorted(val_filenames), self.opt.height, self.opt.width,
+            self.opt.frame_ids, self.num_scales, is_train=False, img_ext=img_ext, is_flow=True, device=self.device)
         self.val_loader_video = DataLoader(
-            val_dataset, 1, False,
+            val_dataset_vid, 1, False,
             num_workers=0, pin_memory=True, drop_last=True)
 
         self.val_iter = iter(self.val_loader)
@@ -169,7 +172,7 @@ class Trainer:
         for self.epoch in range(self.opt.num_epochs):
             if (self.epoch + 1) % self.opt.save_frequency == 0:
                 self.save_model()
-            if (self.epoch+1)%self.opt.video_save_frequency==0: #(self.epoch+1)%5==0: #self.epoch==0: #
+            if  self.epoch==0: #(self.epoch+1)%self.opt.video_save_frequency==0: #(self.epoch+1)%5==0: #self.epoch==0: #
                 print('printing epoch: ', self.epoch)
                 self.run_epoch(log_vid=True)
             else:
@@ -453,7 +456,7 @@ class Trainer:
 
         for batch_idx, inputs in enumerate(self.val_loader_video):
             with torch.no_grad():
-                if batch_idx<min(2,len(self.val_loader_video)):
+                if batch_idx<min(50,len(self.val_loader_video)):
                     
                     for key, ipt in inputs.items():
                         inputs[key] = ipt.to(self.device)
@@ -461,7 +464,7 @@ class Trainer:
                     tgt_features = self.models["encoder"](inputs["color", 0, 0])
                     _,depth_tgt_list = disp_to_depth(self.models["depth"](tgt_features)['disp', 0], self.opt.min_depth, self.opt.max_depth)
 
-                    pdb.set_trace()
+                    #pdb.set_trace()
                     #seq_depths[batch_idx,:,:,0] = seq_depths[batch_idx,:,:,1] = seq_depths[batch_idx,:,:,2] = np.squeeze(normalize_depth(outputs[("depth", 0, 0)][0]).data.cpu().numpy())
                     
                     #seq_depths_plasma[batch_idx,:,:,:] = cm(1-(np.tanh(3*np.squeeze(depth_tgt_list.data.cpu().numpy()))))[:,:,0:3]
