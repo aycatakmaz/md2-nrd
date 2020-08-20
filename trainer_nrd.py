@@ -16,6 +16,8 @@ import torch.nn.functional as F
 import torch.optim as optim
 from torch.utils.data import DataLoader
 from tensorboardX import SummaryWriter
+import torchvision
+import torchvision.transforms as transforms
 
 import json
 
@@ -512,10 +514,12 @@ class Trainer:
     def log(self, mode, inputs, outputs, losses):
         """Write an event to the tensorboard events file
         """
+        cm = plt.get_cmap('plasma')
         writer = self.writers[mode]
         for l, v in losses.items():
             writer.add_scalar("{}".format(l), v, self.step)
 
+        #pdb.set_trace()
         for j in range(min(4, self.opt.batch_size)):  # write a maxmimum of four images
             for s in self.opt.scales:
                 frame_id = 0
@@ -523,9 +527,8 @@ class Trainer:
                     "color_{}_{}/{}".format(frame_id, s, j),
                     inputs[("color", frame_id, s)][j].data, self.step)
 
-                writer.add_image(
-                    "disp_{}/{}".format(s, j),
-                    normalize_image(outputs[("disp", s)][j]), self.step)
+                #writer.add_image("disp_{}/{}".format(s, j), cm(1-(np.squeeze(normalize_depth(outputs[("disp", s)][j]).data.cpu().numpy())))[:,:,0:3], self.step)
+                writer.add_image("disp_{}/{}".format(s, j), torch.from_numpy(cm(1-(np.squeeze(normalize_depth(outputs[("disp", s)][j]).data.cpu().numpy())))[:,:,0:3]).permute(2,0,1), self.step)
 
     def save_opts(self):
         """Save options to disk so we know what we ran this experiment with
