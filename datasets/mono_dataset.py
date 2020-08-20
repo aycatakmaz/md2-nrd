@@ -47,10 +47,10 @@ class MonoDataset(data.Dataset):
                  num_scales,
                  is_train=False,
                  img_ext='.jpg',
-                 is_flow=False, device='cpu'):
+                 is_flow=False,args=None):
         super(MonoDataset, self).__init__()
+        self.args = args
         self.data_path = data_path
-        self.device=device
         self.filenames = filenames
         self.height = height
         self.width = width

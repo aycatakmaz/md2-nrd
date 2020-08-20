@@ -102,6 +102,25 @@ class KITTIDataset(MonoDataset):
 
         return color
 
+def sample_pairs_with_flow(h, w, validity_mask, num_sample_points=100000, d_lim=30, flow_lim=100, norm_lim=3):
+    #validity_mask_valid= np.argwhere(validity_mask==1) # 1 mi true mu
+
+    validity_mask_valid = (torch.squeeze(validity_mask)).nonzero()
+    idx = torch.randint(low=0, high=validity_mask_valid.shape[0], size=(num_sample_points, 2))
+    idx = idx.type(torch.LongTensor)
+
+    first = validity_mask_valid[idx[:,0],:]
+    second = validity_mask_valid[idx[:,1],:]
+    diff = (first-second).type(torch.FloatTensor)
+    dist = torch.norm(diff, p=2, dim=1)
+    selected_points = idx[dist<d_lim]
+    #selected_points = idx
+    p1 = validity_mask_valid[selected_points[:,0],:].type(torch.LongTensor)[:100000,:]
+    p2 = validity_mask_valid[selected_points[:,1],:].type(torch.LongTensor)[:100000,:]
+    return p1, p2
+    
+
+'''    
 def sample_pairs_with_flow(h, w, validity_mask, num_sample_points=100000):
     #pdb.set_trace()
     
@@ -111,7 +130,7 @@ def sample_pairs_with_flow(h, w, validity_mask, num_sample_points=100000):
     p1 = validity_mask_valid[idx[:,0],:].type(torch.LongTensor)
     p2 = validity_mask_valid[idx[:,1],:].type(torch.LongTensor)
     return p1, p2
-
+'''
 
 def two_frames_checker(flowAB):
     h,w = flowAB.shape[0:2]
@@ -189,7 +208,7 @@ class KITTIRAWDataset(KITTIDataset):
         valid_map = torch.from_numpy(valid_map)#.to(self.device)
         loaded_flow = torch.from_numpy(loaded_flow.astype(np.float32))#.to(self.device)
 
-        p1, p2 = sample_pairs_with_flow(h=self.height, w=self.width, validity_mask=valid_map, num_sample_points=100000)
+        p1, p2 = sample_pairs_with_flow(h=self.height, w=self.width, validity_mask=valid_map, num_sample_points=self.args.num_pairs, d_lim=self.args.d_lim)
         return loaded_flow, corresp, valid_map, p1, p2
 
 

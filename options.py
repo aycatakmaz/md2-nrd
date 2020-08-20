@@ -184,6 +184,8 @@ class MonodepthOptions:
                                  help="if set will perform the flipping post processing "
                                       "from the original monodepth paper",
                                  action="store_true")
+        self.parser.add_argument("--num_pairs", type=int, default = 100000)
+        self.parser.add_argument("--d_lim", type=int, default = 30)
 
         # ABLATION options
         self.parser.add_argument("--save_depth_video", help="if set, saves depth prediction videos", action="store_true")

@@ -106,24 +106,24 @@ class Trainer:
 
         train_dataset = self.dataset(
             self.opt.data_path, train_filenames, self.opt.height, self.opt.width,
-            self.opt.frame_ids, self.num_scales, is_train=True, img_ext=img_ext, is_flow=True, device=self.device)
+            self.opt.frame_ids, self.num_scales, is_train=True, img_ext=img_ext, is_flow=True, args=self.opt)
         self.train_loader = DataLoader(
             train_dataset, self.opt.batch_size, True,
             num_workers=self.opt.num_workers, pin_memory=True, drop_last=True)
         val_dataset = self.dataset(
             self.opt.data_path, val_filenames, self.opt.height, self.opt.width,
-            self.opt.frame_ids, self.num_scales, is_train=False, img_ext=img_ext, is_flow=True, device=self.device)
+            self.opt.frame_ids, self.num_scales, is_train=False, img_ext=img_ext, is_flow=True, args=self.opt)
         self.val_loader = DataLoader(
             val_dataset, self.opt.batch_size, True,
             num_workers=self.opt.num_workers, pin_memory=True, drop_last=True)
 
         vid_dataset_val = self.dataset(
             self.opt.data_path, sorted(val_filenames), self.opt.height, self.opt.width,
-            self.opt.frame_ids, self.num_scales, is_train=False, img_ext=img_ext, is_flow=False, device=self.device)
+            self.opt.frame_ids, self.num_scales, is_train=False, img_ext=img_ext, is_flow=False, args=self.opt)
 
         vid_dataset_test = self.dataset(
             self.opt.data_path, sorted(test_filenames), self.opt.height, self.opt.width,
-            self.opt.frame_ids, self.num_scales, is_train=False, img_ext=img_ext, is_flow=False, device=self.device)
+            self.opt.frame_ids, self.num_scales, is_train=False, img_ext=img_ext, is_flow=False, args=self.opt)
 
         self.vid_loader_val = DataLoader(
             vid_dataset_val, 1, False,
