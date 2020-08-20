@@ -244,7 +244,7 @@ class Trainer:
         
         tgt_features = self.models["encoder"](inputs["color", 0, 0])
         _,depth_tgt_list = disp_to_depth(self.models["depth"](tgt_features)['disp', 0], self.opt.min_depth, self.opt.max_depth) #depth_rescale(self.models["depth"](tgt_features)['disp', 0],0, self.opt.clamp_max)
-
+        #pdb.set_trace()
         depth_tgt_cam_points = self.backproject_depth[0](depth_tgt_list, inputs[("inv_K",0)])
         depth_tgt_cam_points = depth_tgt_cam_points[:,0:3,:].view(self.opt.batch_size,3,self.opt.height,self.opt.width)
         depth_tgt_cam_points = depth_tgt_cam_points.permute(0, 2, 3, 1)
@@ -528,7 +528,7 @@ class Trainer:
                     inputs[("color", frame_id, s)][j].data, self.step)
 
                 #writer.add_image("disp_{}/{}".format(s, j), cm(1-(np.squeeze(normalize_depth(outputs[("disp", s)][j]).data.cpu().numpy())))[:,:,0:3], self.step)
-                writer.add_image("disp_{}/{}".format(s, j), torch.from_numpy(cm(1-(np.squeeze(normalize_depth(outputs[("disp", s)][j]).data.cpu().numpy())))[:,:,0:3]).permute(2,0,1), self.step)
+                writer.add_image("disp_{}/{}".format(s, j), torch.from_numpy(cm((np.squeeze(normalize_depth(outputs[("disp", s)][j]).data.cpu().numpy())))[:,:,0:3]).permute(2,0,1), self.step)
 
     def save_opts(self):
         """Save options to disk so we know what we ran this experiment with

@@ -21,6 +21,8 @@ import random
 import cv2
 import time
 import torch
+import pdb
+import st_utils.frame_utils as frame_utils
 
 HEIGHT, WIDTH = 192,640 # 320,896
 TAG_FLOAT = 202021.25
@@ -178,6 +180,8 @@ class KITTIRAWDataset(KITTIDataset):
         #print('getting flow path')
         #print(fl_path)
         loaded_flow = np.asarray(load_as_flow(fl_path))
+        #pdb.set_trace()
+
         #print('loaded the flow')
         #print('flow size: ', loaded_flow.shape)
         corresp, valid_map = two_frames_checker(loaded_flow)
