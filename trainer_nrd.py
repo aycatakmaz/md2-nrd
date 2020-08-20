@@ -296,15 +296,14 @@ class Trainer:
 
         if self.opt.loss_percentage:
             d_loss = torch.sum((torch.abs(d_p12_normalized - d_corresp12_normalized)).div(torch.abs(d_p12_normalized + d_corresp12_normalized + eps)))
-     
-
+        
         # Otherwise, we only feed the image with frame_id 0 through the depth encoder
         features = self.models["encoder"](inputs["color", 0, 0])
         outputs = self.models["depth"](features)
 
         self.generate_images_pred(inputs, outputs)
         losses = self.compute_losses(inputs, outputs, d_loss)
-
+        losses['iso_loss'] = iso_loss
         return outputs, losses
 
 
@@ -484,8 +483,8 @@ class Trainer:
                         #pdb.set_trace()
                         #seq_depths[batch_idx,:,:,0] = seq_depths[batch_idx,:,:,1] = seq_depths[batch_idx,:,:,2] = np.squeeze(normalize_depth(outputs[("depth", 0, 0)][0]).data.cpu().numpy())
                         
-                        #seq_depths_plasma[batch_idx,:,:,:] = cm(1-(np.tanh(3*np.squeeze(depth_tgt_list.data.cpu().numpy()))))[:,:,0:3]
-                        seq_depths_plasma[batch_idx,:,:,:] = cm(1-(np.squeeze(normalize_depth(depth_tgt_list).data.cpu().numpy())))[:,:,0:3]
+                        seq_depths_plasma[batch_idx,:,:,:] = cm(1-(np.tanh(3*np.squeeze(depth_tgt_list.data.cpu().numpy()))))[:,:,0:3]
+                        #seq_depths_plasma[batch_idx,:,:,:] = cm(1-(np.squeeze(normalize_depth(depth_tgt_list).data.cpu().numpy())))[:,:,0:3]
                         
                         input_images[batch_idx,:,:,:] = (1-np.squeeze(inputs['color',0,0].permute(0,2,3,1).data.cpu().numpy()))
                     else:

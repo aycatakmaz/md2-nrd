@@ -82,8 +82,8 @@ class MonodepthOptions:
                                  type=int,
                                  help="frames to load",
                                  default=[0, -1, 1])
-        self.parser.add_argument("--video_save_frequency", type=int, help="video saving frequency", default=5)
-        
+        self.parser.add_argument("--video_save_frequency", type=int, help="video saving frequency", default=1)
+
         # OPTIMIZATION options
         self.parser.add_argument("--batch_size",
                                  type=int,
