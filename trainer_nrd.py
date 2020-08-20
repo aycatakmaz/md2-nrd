@@ -297,13 +297,19 @@ class Trainer:
         if self.opt.loss_percentage:
             d_loss = torch.sum((torch.abs(d_p12_normalized - d_corresp12_normalized)).div(torch.abs(d_p12_normalized + d_corresp12_normalized + eps)))
         
+        iso_loss=d_loss
+
+        mean_depth = depth_tgt_list.mean().type(torch.DoubleTensor).to(self.device)
+
         # Otherwise, we only feed the image with frame_id 0 through the depth encoder
         features = self.models["encoder"](inputs["color", 0, 0])
         outputs = self.models["depth"](features)
 
+        d_loss = d_loss.div(mean_depth)
         self.generate_images_pred(inputs, outputs)
         losses = self.compute_losses(inputs, outputs, d_loss)
-        #losses['iso_loss'] = iso_loss
+        losses['mean_depth'] = mean_depth
+        losses['iso_loss'] = iso_loss
         return outputs, losses
 
 
