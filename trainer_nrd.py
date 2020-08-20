@@ -92,9 +92,11 @@ class Trainer:
         self.dataset = datasets_dict[self.opt.dataset]
 
         fpath = os.path.join(os.path.dirname(__file__), "splits", self.opt.split, "{}_files.txt")
-
+        test_path = os.path.join(os.path.dirname(__file__), "splits", 'eigen_benchmark', "{}_files.txt")
         train_filenames = readlines(fpath.format("train"))
         val_filenames = readlines(fpath.format("val"))
+        test_filenames = readlines(test_path.format("test"))
+
         img_ext = '.png' if self.opt.png else '.jpg'
 
         num_train_samples = len(train_filenames)
@@ -113,11 +115,19 @@ class Trainer:
             val_dataset, self.opt.batch_size, True,
             num_workers=self.opt.num_workers, pin_memory=True, drop_last=True)
 
-        val_dataset_vid = self.dataset(
+        vid_dataset_val = self.dataset(
             self.opt.data_path, sorted(val_filenames), self.opt.height, self.opt.width,
-            self.opt.frame_ids, self.num_scales, is_train=False, img_ext=img_ext, is_flow=True, device=self.device)
-        self.val_loader_video = DataLoader(
-            val_dataset_vid, 1, False,
+            self.opt.frame_ids, self.num_scales, is_train=False, img_ext=img_ext, is_flow=False, device=self.device)
+
+        vid_dataset_test = self.dataset(
+            self.opt.data_path, sorted(test_filenames), self.opt.height, self.opt.width,
+            self.opt.frame_ids, self.num_scales, is_train=False, img_ext=img_ext, is_flow=False, device=self.device)
+
+        self.vid_loader_val = DataLoader(
+            vid_dataset_val, 1, False,
+            num_workers=0, pin_memory=True, drop_last=True)
+        self.vid_loader_test = DataLoader(
+            vid_dataset_test, 1, False,
             num_workers=0, pin_memory=True, drop_last=True)
 
         self.val_iter = iter(self.val_loader)
@@ -449,36 +459,41 @@ class Trainer:
     def save_depth_video(self):
         self.set_eval()
         root_anim_dir = self.log_path + '/' #model_name_temp + '/' #self.opt.anim_dir + '/' + self.model_name_temp[-24:] + '/'
-        input_images = np.zeros((min(50,len(self.val_loader_video)),self.opt.height,self.opt.width,3))
-        seq_depths_plasma = np.zeros((min(50,len(self.val_loader_video)),self.opt.height,self.opt.width,3)) #np.zeros((len(self.train_loader_vid),384,1024,3))
-        
         cm = plt.get_cmap('plasma')
 
-        for batch_idx, inputs in enumerate(self.val_loader_video):
-            with torch.no_grad():
-                if batch_idx<min(50,len(self.val_loader_video)):
-                    
-                    for key, ipt in inputs.items():
-                        inputs[key] = ipt.to(self.device)
-
-                    tgt_features = self.models["encoder"](inputs["color", 0, 0])
-                    _,depth_tgt_list = disp_to_depth(self.models["depth"](tgt_features)['disp', 0], self.opt.min_depth, self.opt.max_depth)
-
-                    #pdb.set_trace()
-                    #seq_depths[batch_idx,:,:,0] = seq_depths[batch_idx,:,:,1] = seq_depths[batch_idx,:,:,2] = np.squeeze(normalize_depth(outputs[("depth", 0, 0)][0]).data.cpu().numpy())
-                    
-                    #seq_depths_plasma[batch_idx,:,:,:] = cm(1-(np.tanh(3*np.squeeze(depth_tgt_list.data.cpu().numpy()))))[:,:,0:3]
-                    seq_depths_plasma[batch_idx,:,:,:] = cm(1-(np.squeeze(normalize_depth(depth_tgt_list).data.cpu().numpy())))[:,:,0:3]
-                    
-                    input_images[batch_idx,:,:,:] = (1-np.squeeze(inputs['color',0,0].permute(0,2,3,1).data.cpu().numpy()))
-                else:
-                    break
+        loaders = {'vid_val':self.vid_loader_val,'vid_test':self.vid_loader_test}
         
-        img_list = list(self.normalize(seq_depths_plasma))
-        input_images_nm = list(self.normalize(input_images))
-        Writer = animation.writers['ffmpeg']
-        writer = Writer(fps=15,  bitrate=1800)
-        self.plot_images(input_images_nm,img_list).save(root_anim_dir+'/anim_embeddings_'+  str(self.epoch).zfill(3)+'.mp4', writer=writer)
+        for lkey in loaders.keys():
+            temp_loader = loaders[lkey]
+            
+            input_images = np.zeros((min(50,len(temp_loader)),self.opt.height,self.opt.width,3))
+            seq_depths_plasma = np.zeros((min(50,len(temp_loader)),self.opt.height,self.opt.width,3)) #np.zeros((len(self.train_loader_vid),384,1024,3))
+        
+            for batch_idx, inputs in enumerate(temp_loader):
+                with torch.no_grad():
+                    if batch_idx<min(50,len(temp_loader)):
+                        
+                        for key, ipt in inputs.items():
+                            inputs[key] = ipt.to(self.device)
+
+                        tgt_features = self.models["encoder"](inputs["color", 0, 0])
+                        _,depth_tgt_list = disp_to_depth(self.models["depth"](tgt_features)['disp', 0], self.opt.min_depth, self.opt.max_depth)
+
+                        #pdb.set_trace()
+                        #seq_depths[batch_idx,:,:,0] = seq_depths[batch_idx,:,:,1] = seq_depths[batch_idx,:,:,2] = np.squeeze(normalize_depth(outputs[("depth", 0, 0)][0]).data.cpu().numpy())
+                        
+                        #seq_depths_plasma[batch_idx,:,:,:] = cm(1-(np.tanh(3*np.squeeze(depth_tgt_list.data.cpu().numpy()))))[:,:,0:3]
+                        seq_depths_plasma[batch_idx,:,:,:] = cm(1-(np.squeeze(normalize_depth(depth_tgt_list).data.cpu().numpy())))[:,:,0:3]
+                        
+                        input_images[batch_idx,:,:,:] = (1-np.squeeze(inputs['color',0,0].permute(0,2,3,1).data.cpu().numpy()))
+                    else:
+                        break
+            
+            img_list = list(self.normalize(seq_depths_plasma))
+            input_images_nm = list(self.normalize(input_images))
+            Writer = animation.writers['ffmpeg']
+            writer = Writer(fps=10,  bitrate=1800)
+            self.plot_images(input_images_nm,img_list).save(root_anim_dir+'/anim_embeddings_'+ str(lkey) + '_' + str(self.epoch).zfill(3)+'.mp4', writer=writer)
         self.set_train() 
 
 
