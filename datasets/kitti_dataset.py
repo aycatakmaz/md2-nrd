@@ -115,8 +115,8 @@ def sample_pairs_with_flow(h, w, validity_mask, num_sample_points=100000, d_lim=
     dist = torch.norm(diff, p=2, dim=1)
     selected_points = idx[dist<d_lim]
     #selected_points = idx
-    p1 = validity_mask_valid[selected_points[:,0],:].type(torch.LongTensor)[:40000, :]
-    p2 = validity_mask_valid[selected_points[:,1],:].type(torch.LongTensor)[:40000, :]
+    p1 = validity_mask_valid[selected_points[:,0],:].type(torch.LongTensor)[:100000, :]
+    p2 = validity_mask_valid[selected_points[:,1],:].type(torch.LongTensor)[:100000, :]
     return p1, p2
     
 
